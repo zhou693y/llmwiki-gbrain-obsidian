@@ -46,13 +46,17 @@ wiki/                     ← Claude 维护这里
 
 ## 快速开始
 
+**Mac / Linux**
+
 ```bash
 # 1. 使用此模板（点击 GitHub 上的"Use this template"）或直接克隆
-git clone https://github.com/your-username/llm-wiki-template.git my-wiki
+git clone https://github.com/jingw2/llm-wiki-template.git my-wiki
 cd my-wiki
 
 # 2. 运行初始化脚本
 ./init.sh
+# → 选择语言（英文 / 中文）
+# → 选择是否安装 Obsidian 插件（Claudian + Clipper）
 
 # 3. 在 Claude Code 中打开
 claude
@@ -62,6 +66,20 @@ claude
 
 # 5. 告诉 Claude Code 导入它
 # > ingest raw/articles/2026-01-15_my-article.md
+```
+
+**Windows（PowerShell）**
+
+```powershell
+# 1. 克隆仓库
+git clone https://github.com/jingw2/llm-wiki-template.git my-wiki
+cd my-wiki
+
+# 2. 允许运行脚本（一次性，仅当前用户）
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# 3. 运行初始化脚本
+.\init.ps1
 ```
 
 就这样。Claude 会生成摘要页，更新相关的概念和实体页，并在索引和日志中添加条目。
@@ -175,12 +193,27 @@ mkdir raw/tweets
 
 Obsidian 不是必须的，但和这个模板配合得很好——图谱视图能漂亮地可视化 wiki 交叉引用。
 
+### 自动安装（推荐）
+
+运行 `./init.sh`（Windows 用 `.\init.ps1`），在提示时输入 **y** 安装插件，脚本会自动下载并配置：
+
+| 插件 | 用途 |
+|------|------|
+| **Claudian** | 在 Obsidian 内直接与 Claude 对话 |
+| **Clipper** | 一键把网页内容剪藏到 `raw/articles/` |
+| **BRAT** | 自动管理 Claudian 的后续更新 |
+
+脚本完成后：
+1. 用 Obsidian 打开此目录
+2. 进入 **设置 → Claudian**，填写你的 API 密钥
+3. 插件在启动时自动激活
+
+### 手动安装
+
 1. 打开 Obsidian → "Open folder as vault" → 选择这个目录
-2. 设置 → 文件与链接，把"新笔记的默认存放位置"改为指定文件夹
-3. 启用"Wiki 链接"和"检测所有文件扩展名"
-4. 推荐社区插件（通过"设置 → 社区插件"安装）：
-   - **BRAT** — 安装 Beta 插件
-   - **Remotely Save** — 跨设备同步
+2. 设置 → 社区插件 → 浏览
+3. 安装：**BRAT**、**Clipper**
+4. 通过 BRAT 安装 Claudian：`YishenTu/claudian`
 
 ---
 

@@ -1,7 +1,7 @@
 # Obsidian runtime state
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
-.obsidian/plugins/*/data.json
+.obsidian/plugins/
 .trash/
 
 # Claude Code / Claudian plugin runtime state

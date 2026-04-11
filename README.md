@@ -48,13 +48,17 @@ Every wiki page has structured YAML frontmatter that tracks which source files i
 
 ## Quickstart
 
+**Mac / Linux**
+
 ```bash
 # 1. Use this template (click "Use this template" on GitHub) or clone directly
-git clone https://github.com/your-username/llm-wiki-template.git my-wiki
+git clone https://github.com/jingw2/llm-wiki-template.git my-wiki
 cd my-wiki
 
 # 2. Run the init script
 ./init.sh
+# → Choose language (English / Chinese)
+# → Choose whether to install Obsidian plugins (Claudian + Clipper)
 
 # 3. Open in Claude Code
 claude
@@ -64,6 +68,20 @@ claude
 
 # 5. Tell Claude Code to ingest it
 # > ingest raw/articles/2026-01-15_my-article.md
+```
+
+**Windows (PowerShell)**
+
+```powershell
+# 1. Clone the repo
+git clone https://github.com/jingw2/llm-wiki-template.git my-wiki
+cd my-wiki
+
+# 2. Allow script execution (one-time, current user only)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# 3. Run the init script
+.\init.ps1
 ```
 
 That's it. Claude will generate a summary page, update relevant concept and entity pages, and add an entry to the index and log.
@@ -176,12 +194,27 @@ Tell Claude what kinds of content to expect there in `CLAUDE.md`.
 
 Obsidian is not required but pairs well with this template — the graph view visualizes wiki cross-references beautifully.
 
+### Automatic (via init script)
+
+Run `./init.sh` (or `.\init.ps1` on Windows) and answer **y** when prompted to install plugins. The script will download and configure:
+
+| Plugin | Purpose |
+|--------|---------|
+| **Claudian** | Chat with Claude directly inside Obsidian |
+| **Clipper** | Clip web pages into `raw/articles/` with one click |
+| **BRAT** | Manages Claudian updates automatically |
+
+After the script finishes:
+1. Open this folder in Obsidian
+2. Go to **Settings → Claudian** and enter your API key
+3. Plugins activate automatically on startup
+
+### Manual
+
 1. Open Obsidian → "Open folder as vault" → select this directory
-2. In Settings → Files & Links, set "Default location for new notes" to a specific folder
-3. Enable "Wikilinks" and "Detect all file extensions"
-4. Recommended community plugins (install via Settings → Community plugins):
-   - **BRAT** — for installing beta plugins
-   - **Remotely Save** — for cross-device sync
+2. Go to Settings → Community plugins → Browse
+3. Install: **BRAT**, **Clipper**
+4. Use BRAT to install Claudian from `YishenTu/claudian`
 
 ---
 
