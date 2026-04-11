@@ -5,6 +5,14 @@
 
 $ErrorActionPreference = "Stop"
 
+# Write UTF-8 without BOM — compatible with PS 5.1 and PS 7+.
+# Out-File -Encoding utf8 adds a BOM on PS 5.x which breaks Obsidian JSON parsing.
+function Write-UTF8NoBOM {
+  param([string]$Path, [string]$Content)
+  $enc = New-Object System.Text.UTF8Encoding $false
+  [System.IO.File]::WriteAllText((Join-Path (Get-Location) $Path), $Content, $enc)
+}
+
 Write-Host ""
 Write-Host "========================================="
 Write-Host "  LLM Wiki - Knowledge Base Setup"
@@ -48,7 +56,7 @@ if ($langChoice -eq "2") {
 # --- Seed wiki/INDEX.md if missing or empty ---
 $indexPath = "wiki\INDEX.md"
 if (-not (Test-Path $indexPath) -or (Get-Item $indexPath).Length -eq 0) {
-  @"
+  Write-UTF8NoBOM $indexPath @"
 ---
 title: Wiki Index
 last_updated: (updated automatically after each ingest)
@@ -63,7 +71,7 @@ last_updated: (updated automatically after each ingest)
 ## QA
 
 ## Summaries
-"@ | Out-File -FilePath $indexPath -Encoding utf8
+"@
   Write-Host "✓ wiki\INDEX.md initialized"
 }
 
@@ -71,11 +79,11 @@ last_updated: (updated automatically after each ingest)
 $logPath = "wiki\log.md"
 if (-not (Test-Path $logPath) -or (Get-Item $logPath).Length -eq 0) {
   $today = Get-Date -Format "yyyy-MM-dd"
-  @"
+  Write-UTF8NoBOM $logPath @"
 # Operation Log
 
 ## [$today] init | Knowledge base initialized | 0
-"@ | Out-File -FilePath $logPath -Encoding utf8
+"@
   Write-Host "✓ wiki\log.md initialized"
 }
 
@@ -103,17 +111,17 @@ if ($setupObsidian -match "^[Yy]$") {
   Install-ObsidianPlugin "obsidian-clipper" "jgchristopher/obsidian-clipper"
 
   # Enable plugins
-  @'
+  Write-UTF8NoBOM ".obsidian\community-plugins.json" @'
 [
   "obsidian42-brat",
   "claudian",
   "obsidian-clipper"
 ]
-'@ | Out-File -FilePath ".obsidian\community-plugins.json" -Encoding utf8
+'@
 
   # Configure BRAT to track Claudian for future updates
   New-Item -ItemType Directory -Force -Path ".obsidian\plugins\obsidian42-brat" | Out-Null
-  @'
+  Write-UTF8NoBOM ".obsidian\plugins\obsidian42-brat\data.json" @'
 {
   "pluginList": ["YishenTu/claudian"],
   "pluginSubListFrozenVersion": [
@@ -123,10 +131,10 @@ if ($setupObsidian -match "^[Yy]$") {
   "enableAfterInstall": true,
   "notificationsEnabled": true
 }
-'@ | Out-File -FilePath ".obsidian\plugins\obsidian42-brat\data.json" -Encoding utf8
+'@
 
   # Minimal Obsidian app config
-  "{}" | Out-File -FilePath ".obsidian\app.json" -Encoding utf8
+  Write-UTF8NoBOM ".obsidian\app.json" "{}"
 
   Write-Host "✓ Obsidian plugins installed (BRAT, Claudian, Clipper)"
   Write-Host "  → Open this folder in Obsidian to complete plugin activation"

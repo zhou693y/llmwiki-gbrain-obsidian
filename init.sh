@@ -86,9 +86,16 @@ if [[ "$setup_obsidian" =~ ^[Yy]$ ]]; then
       mkdir -p "$plugin_dir"
       local base="https://github.com/${repo}/releases/latest/download"
       echo "  Downloading ${plugin_id}..."
-      curl -fsSL "${base}/main.js"       -o "${plugin_dir}/main.js"
-      curl -fsSL "${base}/manifest.json" -o "${plugin_dir}/manifest.json"
-      curl -fsSL "${base}/styles.css"    -o "${plugin_dir}/styles.css" 2>/dev/null || true
+      # Use || to prevent set -e from killing the script on download failure
+      local ok=1
+      curl -sSL "${base}/main.js"       -o "${plugin_dir}/main.js"       || ok=0
+      curl -sSL "${base}/manifest.json" -o "${plugin_dir}/manifest.json" || ok=0
+      curl -sSL "${base}/styles.css"    -o "${plugin_dir}/styles.css" 2>/dev/null || true
+      if [[ $ok -eq 0 ]]; then
+        echo "  ✗ Failed to download ${plugin_id}. Check your internet connection."
+        rm -rf "${plugin_dir}"   # clean up partial state
+        return 0                 # don't abort the whole script
+      fi
     }
 
     mkdir -p .obsidian/plugins
