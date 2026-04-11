@@ -104,14 +104,16 @@ if [[ "$setup_obsidian" =~ ^[Yy]$ ]]; then
     install_plugin "claudian"         "YishenTu/claudian"
     install_plugin "obsidian-clipper" "jgchristopher/obsidian-clipper"
 
-    # Enable plugins in Obsidian config
-    cat > .obsidian/community-plugins.json << 'EOF'
+    # Enable plugins — only write if not present to avoid losing user's other plugins on re-run
+    if [[ ! -f .obsidian/community-plugins.json ]]; then
+      cat > .obsidian/community-plugins.json << 'EOF'
 [
   "obsidian42-brat",
   "claudian",
   "obsidian-clipper"
 ]
 EOF
+    fi
 
     # Configure BRAT to track Claudian for future updates
     mkdir -p .obsidian/plugins/obsidian42-brat
@@ -127,10 +129,12 @@ EOF
 }
 EOF
 
-    # Minimal Obsidian app config
-    cat > .obsidian/app.json << 'EOF'
+    # Minimal Obsidian app config — only write if not present to avoid overwriting user settings on re-run
+    if [[ ! -f .obsidian/app.json ]]; then
+      cat > .obsidian/app.json << 'EOF'
 {}
 EOF
+    fi
 
     echo "✓ Obsidian plugins installed (BRAT, Claudian, Clipper)"
     echo "  → Open this folder in Obsidian to complete plugin activation"

@@ -97,11 +97,17 @@ if ($setupObsidian -match "^[Yy]$") {
     New-Item -ItemType Directory -Force -Path $pluginDir | Out-Null
     $base = "https://github.com/$Repo/releases/latest/download"
     Write-Host "  Downloading $PluginId..."
-    Invoke-WebRequest -Uri "$base/main.js"       -OutFile "$pluginDir\main.js"       -UseBasicParsing
-    Invoke-WebRequest -Uri "$base/manifest.json" -OutFile "$pluginDir\manifest.json" -UseBasicParsing
     try {
-      Invoke-WebRequest -Uri "$base/styles.css"  -OutFile "$pluginDir\styles.css"    -UseBasicParsing
-    } catch { <# styles.css is optional #> }
+      Invoke-WebRequest -Uri "$base/main.js"       -OutFile "$pluginDir\main.js"       -UseBasicParsing
+      Invoke-WebRequest -Uri "$base/manifest.json" -OutFile "$pluginDir\manifest.json" -UseBasicParsing
+      try {
+        Invoke-WebRequest -Uri "$base/styles.css"  -OutFile "$pluginDir\styles.css"    -UseBasicParsing
+      } catch { <# styles.css is optional #> }
+    } catch {
+      Write-Host "  ✗ Failed to download $PluginId. Check your internet connection."
+      if (Test-Path $pluginDir) { Remove-Item -Recurse -Force $pluginDir }
+      # Don't re-throw — continue with remaining plugins
+    }
   }
 
   New-Item -ItemType Directory -Force -Path ".obsidian\plugins" | Out-Null
@@ -110,14 +116,16 @@ if ($setupObsidian -match "^[Yy]$") {
   Install-ObsidianPlugin "claudian"         "YishenTu/claudian"
   Install-ObsidianPlugin "obsidian-clipper" "jgchristopher/obsidian-clipper"
 
-  # Enable plugins
-  Write-UTF8NoBOM ".obsidian\community-plugins.json" @'
+  # Enable plugins — only write if not present to avoid losing user's other plugins on re-run
+  if (-not (Test-Path ".obsidian\community-plugins.json")) {
+    Write-UTF8NoBOM ".obsidian\community-plugins.json" @'
 [
   "obsidian42-brat",
   "claudian",
   "obsidian-clipper"
 ]
 '@
+  }
 
   # Configure BRAT to track Claudian for future updates
   New-Item -ItemType Directory -Force -Path ".obsidian\plugins\obsidian42-brat" | Out-Null
@@ -133,8 +141,10 @@ if ($setupObsidian -match "^[Yy]$") {
 }
 '@
 
-  # Minimal Obsidian app config
-  Write-UTF8NoBOM ".obsidian\app.json" "{}"
+  # Minimal Obsidian app config — only write if not present to avoid overwriting user settings on re-run
+  if (-not (Test-Path ".obsidian\app.json")) {
+    Write-UTF8NoBOM ".obsidian\app.json" "{}"
+  }
 
   Write-Host "✓ Obsidian plugins installed (BRAT, Claudian, Clipper)"
   Write-Host "  → Open this folder in Obsidian to complete plugin activation"
