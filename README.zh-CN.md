@@ -15,11 +15,17 @@
 思路很简单：你收集原始资料（文章、播客、论文、笔记），Claude Code 充当不知疲倦的 wiki 编辑——读每一份资料，提取关键想法，构建一个可以用自然语言查询的结构化知识库。
 
 ```
+CLAUDE.md                 ← 系统提示词：告诉 Claude 如何维护 wiki
+CLAUDE.zh-CN.md           ← 中文版系统提示词
+init.sh                   ← 初始化脚本（Mac / Linux）
+init.ps1                  ← 初始化脚本（Windows）
+
 raw/                      ← 你把原始文件放这里
   articles/
   podcasts/
   papers/
   my-notes/
+  assets/
 
 wiki/                     ← Claude 维护这里
   INDEX.md                ← 所有页面的主索引

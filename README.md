@@ -17,11 +17,17 @@ Drop in raw sources. Ask Claude to ingest them. Get a structured, interlinked wi
 The idea is simple: you collect raw materials (articles, podcasts, papers, notes), and Claude Code acts as a tireless wiki editor — reading each source, extracting key ideas, and building a structured knowledge base you can query in natural language.
 
 ```
+CLAUDE.md                 ← System prompt: tells Claude how to maintain the wiki
+CLAUDE.zh-CN.md           ← Chinese version of the system prompt
+init.sh                   ← Setup script (Mac / Linux)
+init.ps1                  ← Setup script (Windows)
+
 raw/                      ← You drop source files here
   articles/
   podcasts/
   papers/
   my-notes/
+  assets/
 
 wiki/                     ← Claude maintains this
   INDEX.md                ← Master index of all pages
