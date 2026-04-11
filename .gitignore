@@ -1,0 +1,13 @@
+# Obsidian runtime state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/*/data.json
+.trash/
+
+# Claude Code / Claudian plugin runtime state
+.claudian/
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
