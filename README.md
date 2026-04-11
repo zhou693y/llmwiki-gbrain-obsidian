@@ -1,5 +1,7 @@
 # LLM Wiki Template
 
+[![GitHub stars](https://img.shields.io/github/stars/jingw2/llm-wiki-template?style=social)](https://github.com/jingw2/llm-wiki-template/stargazers)
+
 **Build a personal knowledge base powered by Claude Code.**
 
 Drop in raw sources. Ask Claude to ingest them. Get a structured, interlinked wiki — automatically maintained by an LLM that reads, summarizes, cross-references, and answers questions.
