@@ -28,10 +28,7 @@ gbrain            检索引擎：Postgres + pgvector 混合搜索，支持 10,00
 
 ```
 raw/                    原始资料（只读）
-  articles/             网页文章
-  podcasts/             播客笔记
-  papers/               论文
-  my-notes/             个人笔记
+  ScenicPictures/       景区图片数据
   ScenicDatas/          景区结构化数据
 
 wiki/                   结构化知识页面
