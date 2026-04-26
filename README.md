@@ -1,243 +1,170 @@
-# LLM Wiki Template
+# 景区知识库模板
 
-[![GitHub stars](https://img.shields.io/github/stars/jingw2/llm-wiki-template?style=social)](https://github.com/jingw2/llm-wiki-template/stargazers)
+> Obsidian + llmwiki + gbrain 三层知识库，人能读、AI 能搜、知识能累积。
 
-**Build a personal knowledge base powered by Claude Code.**
-
-Drop in raw sources. Ask Claude to ingest them. Get a structured, interlinked wiki — automatically maintained by an LLM that reads, summarizes, cross-references, and answers questions.
-
-> Inspired by [Andrej Karpathy's llm-wiki](https://github.com/karpathy/llm-wiki) concept.
-
-📖 [中文文档 README.zh-CN.md](README.zh-CN.md)
+一个以 Obsidian vault 为载体、llmwiki 为知识规范、gbrain 为检索引擎的领域知识库模板。当前以景区知识库为示范，可替换为任意垂直领域。
 
 ---
 
-## What is this?
-
-The idea is simple: you collect raw materials (articles, podcasts, papers, notes), and Claude Code acts as a tireless wiki editor — reading each source, extracting key ideas, and building a structured knowledge base you can query in natural language.
+## 三层架构
 
 ```
-CLAUDE.md                 ← System prompt: tells Claude how to maintain the wiki
-CLAUDE.zh-CN.md           ← Chinese version of the system prompt
-init.sh                   ← Setup script (Mac / Linux)
-init.ps1                  ← Setup script (Windows)
-
-raw/                      ← You drop source files here
-  articles/
-  podcasts/
-  papers/
-  my-notes/
-  assets/
-
-wiki/                     ← Claude maintains this
-  INDEX.md                ← Master index of all pages
-  log.md                  ← Append-only operation log
-  summaries/              ← One summary per source file
-  concepts/               ← Concept pages (ideas, methods, frameworks)
-  entities/               ← Entity pages (people, tools, companies)
-  scenarios/              ← Domain-specific scenario pages
-  syntheses/              ← Cross-source synthesis and analysis
-  qa/                     ← Saved Q&A records
+Obsidian          人的界面：可视化编辑、双链图谱、Dataview 动态表格
+    ↕
+llmwiki           知识规范：分层结构、frontmatter 元数据、AI 操作协议（CLAUDE.md）
+    ↕
+gbrain            检索引擎：Postgres + pgvector 混合搜索，支持 10,000+ 文件
 ```
 
-Every wiki page has structured YAML frontmatter that tracks which source files it was built from — enabling incremental updates when sources change.
+三层分工明确，互不干扰：
+
+- **Obsidian** 负责人工浏览和编辑，知识图谱可视化
+- **llmwiki**（`CLAUDE.md`）定义知识的组织方式和 AI 的操作规范
+- **gbrain** 在底层提供规模化检索，文件量小时可不启用
 
 ---
 
-## Prerequisites
+## 目录结构
 
-- **[Claude Code](https://claude.ai/code)** — the CLI that runs as your wiki maintainer
-- **A markdown editor** — [Obsidian](https://obsidian.md/) works great for browsing the wiki with graph view and wikilinks; any editor works
-- A topic you want to build knowledge around
+```
+raw/                    原始资料（只读）
+  articles/             网页文章
+  podcasts/             播客笔记
+  papers/               论文
+  my-notes/             个人笔记
+  ScenicDatas/          景区结构化数据
+
+wiki/                   结构化知识页面
+  INDEX.md              页面目录 + Dataview 动态视图
+  log.md                操作日志（append-only）
+  summaries/            景点摘要页
+  concepts/             概念页（佛教文化、禅意美学等）
+  entities/             实体页（景区、景点、人物等）
+  scenarios/            场景页（游览攻略、亲子路线等）
+  syntheses/            综合分析页
+  qa/                   问答记录
+
+templates/              Obsidian Templater 模板
+gbrain/                 gbrain 检索引擎（git submodule）
+```
 
 ---
 
-## Quickstart
+## 快速开始
 
-**Mac / Linux**
+**前提条件**：已安装 [Obsidian](https://obsidian.md) 和 [git](https://git-scm.com)
 
 ```bash
-# 1. Use this template (click "Use this template" on GitHub) or clone directly
-git clone https://github.com/jingw2/llm-wiki-template.git my-wiki
-cd my-wiki
-
-# 2. Run the init script
-./init.sh
-# → Choose language (English / Chinese)
-# → Choose whether to install Obsidian plugins (Claudian + Clipper)
-
-# 3. Open in Claude Code
-claude
-
-# 4. Drop a source file into raw/
-# (e.g., paste an article into raw/articles/2026-01-15_my-article.md)
-
-# 5. Tell Claude Code to ingest it
-# > ingest raw/articles/2026-01-15_my-article.md
+git clone <this-repo>
+cd <repo-name>
 ```
 
-**Windows (PowerShell)**
-
+**Windows：**
 ```powershell
-# 1. Clone the repo
-git clone https://github.com/jingw2/llm-wiki-template.git my-wiki
-cd my-wiki
-
-# 2. Allow script execution (one-time, current user only)
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# 3. Run the init script
 .\init.ps1
 ```
 
-That's it. Claude will generate a summary page, update relevant concept and entity pages, and add an entry to the index and log.
+**Mac / Linux：**
+```bash
+chmod +x init.sh && ./init.sh
+```
+
+脚本会自动完成：
+- 创建目录结构
+- 下载 Obsidian 插件（Clipper、Dataview、Templater）
+- 安装 bun（如未安装）
+- clone + 初始化 gbrain，导入 wiki 页面
+
+完成后用 Obsidian 打开此文件夹即可。
 
 ---
 
-## Usage
+## 支持的 AI 工具
 
-All operations are natural language commands in Claude Code.
+任何能读取 `CLAUDE.md` 的 AI IDE 均可驱动此知识库，无需额外配置：
 
-### Ingest a new source
-
-```
-ingest raw/articles/my-article.md
-```
-
-Claude will:
-1. Read and identify the document type
-2. Generate `wiki/summaries/My-Article.md`
-3. Create or update relevant `concepts/` and `entities/` pages
-4. Update `INDEX.md` and append to `log.md`
-
-### Ask a question
-
-Just ask in natural language:
-
-```
-What are the key differences between X and Y?
-What does the research say about Z?
-Summarize everything I know about [topic]
-```
-
-Claude searches the wiki first (L1: index → L2: relevant pages → L3: raw sources), answers with citations, and saves the Q&A to `wiki/qa/`.
-
-### Generate a scenario page
-
-```
-Generate a scenario page for [scenario name]
-```
-
-Claude synthesizes all related knowledge into `wiki/scenarios/<name>.md`.
-
-### Generate a synthesis
-
-```
-Generate a synthesis about [topic]
-```
-
-Claude cross-references all related concepts, entities, summaries, and Q&A records into `wiki/syntheses/<topic>.md`.
-
-### Run a health check
-
-```
-lint
-```
-
-Claude checks for orphaned pages, dead links, missing summaries, and contradictions, then appends a report to `log.md`.
+| 工具 | 说明 |
+|---|---|
+| [Kiro](https://kiro.dev) | 推荐，原生支持 MCP |
+| [Cursor](https://cursor.sh) | 支持 `.cursorrules` / CLAUDE.md |
+| [Windsurf](https://codeium.com/windsurf) | 同上 |
+| [Qwen Code](https://github.com/QwenLM/qwen-code) | 阿里云，无需 Anthropic key |
+| [Claude Code](https://claude.ai/code) | gbrain 原生设计目标 |
+| OpenAI Codex | 支持 |
 
 ---
 
-## Page Types
+## 核心操作
 
-| Type | Location | Purpose |
-|------|----------|---------|
-| Summary | `wiki/summaries/` | One page per raw source — key takeaways and links |
-| Concept | `wiki/concepts/` | A reusable idea, framework, or method |
-| Entity | `wiki/entities/` | A person, tool, company, or framework |
-| Scenario | `wiki/scenarios/` | Domain-specific use cases and workflows |
-| Synthesis | `wiki/syntheses/` | Cross-source analysis — arguments with evidence |
-| Q&A | `wiki/qa/` | Saved answers to questions you've asked |
+在 AI IDE 中直接用自然语言触发：
+
+```
+ingest raw/ScenicDatas/01_灵山大照壁.md     # 导入新景点数据
+query 灵山胜境有哪些免费景点                  # 查询知识库
+生成亲子游览的场景页                          # 生成场景分析
+生成关于佛教文化旅游的综合分析                 # 跨景点综合
+lint                                        # 健检：孤立页面、死链、矛盾
+```
 
 ---
 
-## Customization
+## Obsidian 插件
 
-### 1. Edit the domain description in `CLAUDE.md`
+| 插件 | 用途 | 安装方式 |
+|---|---|---|
+| **Obsidian Clipper** | 网页剪藏 → `raw/articles/` | init 脚本自动安装 |
+| **Dataview** | frontmatter 动态查询表格 | init 脚本自动安装 |
+| **Templater** | 新建页面自动填充 frontmatter | init 脚本自动安装 |
 
-At the top of `CLAUDE.md`, replace the generic description with your specific domain:
+Templater 模板位于 `templates/`，覆盖所有页面类型：
+`summary` / `entity-scenic_area` / `entity-scenic_spot` / `concept` / `scenario` / `qa`
 
-```markdown
-## Who You Are
+---
 
-You are the maintainer of this knowledge base. This wiki covers
-[your domain — e.g., "machine learning research", "competitive intelligence
-for the SaaS industry", "personal finance and investing"].
-```
-
-### 2. Set scenario domains
-
-In `CLAUDE.md`, find the scenario frontmatter section and replace `<your-domain>` with values that match your knowledge base:
-
-```yaml
-domain: research|engineering|business   # your values here
-```
-
-### 3. Add custom raw source categories
-
-Just create a new subdirectory under `raw/`:
+## gbrain 检索
 
 ```bash
-mkdir raw/videos
-mkdir raw/tweets
+# 关键词搜索（开箱即用）
+gbrain query "灵山胜境门票"
+
+# 向量语义搜索（需要 OpenAI 兼容 API key）
+export OPENAI_API_KEY=your-key
+gbrain embed --stale
+gbrain query "适合老人的景点"
+
+# 同步新增的 wiki 页面
+gbrain sync --repo wiki/ && gbrain embed --stale
+
+# 查看索引状态
+gbrain stats
 ```
 
-Tell Claude what kinds of content to expect there in `CLAUDE.md`.
+向量搜索支持 OpenAI 兼容接口，阿里云 DashScope 等国内服务可通过设置 `OPENAI_BASE_URL` 接入（需修改 `gbrain/src/core/embedding.ts` 中的模型名）。
 
 ---
 
-## Obsidian Setup (Optional)
+## 替换为其他领域
 
-Obsidian is not required but pairs well with this template — the graph view visualizes wiki cross-references beautifully.
+此模板以景区知识库为示范，替换领域只需：
 
-### Automatic (via init script)
+1. 修改 `CLAUDE.md` 顶部的领域描述和 `domain` 枚举值
+2. 修改 `entity_type` 枚举（当前为 `scenic_area` / `scenic_spot`）
+3. 清空 `wiki/` 下的示范页面，放入自己的 `raw/` 原始资料
+4. 运行 `ingest` 重建知识库
 
-Run `./init.sh` (or `.\init.ps1` on Windows) and answer **y** when prompted to install plugins. The script will download and configure:
-
-| Plugin | Purpose |
-|--------|---------|
-| **Claudian** | Chat with Claude directly inside Obsidian |
-| **Clipper** | Clip web pages into `raw/articles/` with one click |
-| **BRAT** | Manages Claudian updates automatically |
-
-After the script finishes:
-1. Open this folder in Obsidian
-2. Go to **Settings → Claudian** and enter your API key
-3. Plugins activate automatically on startup
-
-### Manual
-
-1. Open Obsidian → "Open folder as vault" → select this directory
-2. Go to Settings → Community plugins → Browse
-3. Install: **BRAT**, **Clipper**
-4. Use BRAT to install Claudian from `YishenTu/claudian`
+适用领域举例：医疗知识库、法律条文库、产品文档库、企业内部知识库。
 
 ---
 
-## How It Works
+## 技术栈
 
-**Token budget strategy:** Claude reads progressively deeper:
-- L1 (session start): Only `INDEX.md` (~1–2K tokens)
-- L2 (question-relevant): 2–3 specific wiki pages (~2–5K tokens)
-- L3 (deep analysis): Full pages and raw source documents
-
-**Incremental indexing:** Every wiki page has `source_files: []` in its frontmatter, recording which raw files contributed to it. When you update a source, Claude knows exactly which wiki pages to recompile.
-
-**Append-only log:** `wiki/log.md` is a permanent record of every operation. Grep-parseable format makes it easy to audit what changed.
+- [llmwiki](https://github.com/llmwiki/llmwiki) — 知识库规范和 AI 操作协议
+- [gbrain](https://github.com/garrytan/gbrain) — Postgres-native 混合搜索引擎（MIT）
+- [Obsidian](https://obsidian.md) — Markdown 知识库可视化工具
+- PGLite — 嵌入式 Postgres，无需独立数据库服务
 
 ---
 
-## Credits
+## License
 
-- Inspired by [Andrej Karpathy's llm-wiki](https://github.com/karpathy/llm-wiki)
-- Built to work with [Claude Code](https://claude.ai/code) by Anthropic
+MIT

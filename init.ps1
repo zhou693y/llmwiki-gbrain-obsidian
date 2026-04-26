@@ -89,7 +89,7 @@ if (-not (Test-Path $logPath) -or (Get-Item $logPath).Length -eq 0) {
 
 # --- Optional: Obsidian plugin setup ---
 Write-Host ""
-$setupObsidian = Read-Host "Set up Obsidian plugins (Claudian + Clipper)? [y/N]"
+$setupObsidian = Read-Host "Set up Obsidian plugins (Clipper + Dataview + Templater)? [y/N]"
 if ($setupObsidian -match "^[Yy]$") {
   function Install-ObsidianPlugin {
     param([string]$PluginId, [string]$Repo)
@@ -106,49 +106,81 @@ if ($setupObsidian -match "^[Yy]$") {
     } catch {
       Write-Host "  ✗ Failed to download $PluginId. Check your internet connection."
       if (Test-Path $pluginDir) { Remove-Item -Recurse -Force $pluginDir }
-      # Don't re-throw — continue with remaining plugins
     }
   }
 
   New-Item -ItemType Directory -Force -Path ".obsidian\plugins" | Out-Null
 
-  Install-ObsidianPlugin "obsidian42-brat"  "TfTHacker/obsidian42-brat"
-  Install-ObsidianPlugin "claudian"         "YishenTu/claudian"
-  Install-ObsidianPlugin "obsidian-clipper" "jgchristopher/obsidian-clipper"
+  Install-ObsidianPlugin "obsidian-clipper"    "obsidianmd/obsidian-clipper"
+  Install-ObsidianPlugin "dataview"            "blacksmithgu/obsidian-dataview"
+  Install-ObsidianPlugin "templater-obsidian"  "SilentVoid13/Templater"
 
-  # Enable plugins — only write if not present to avoid losing user's other plugins on re-run
-  if (-not (Test-Path ".obsidian\community-plugins.json")) {
-    Write-UTF8NoBOM ".obsidian\community-plugins.json" @'
+  # Enable plugins
+  Write-UTF8NoBOM ".obsidian\community-plugins.json" @'
 [
-  "obsidian42-brat",
-  "claudian",
-  "obsidian-clipper"
+  "obsidian-clipper",
+  "dataview",
+  "templater-obsidian"
 ]
 '@
-  }
 
-  # Configure BRAT to track Claudian for future updates
-  New-Item -ItemType Directory -Force -Path ".obsidian\plugins\obsidian42-brat" | Out-Null
-  Write-UTF8NoBOM ".obsidian\plugins\obsidian42-brat\data.json" @'
+  # Templater config — point to templates/ folder
+  New-Item -ItemType Directory -Force -Path ".obsidian\plugins\templater-obsidian" | Out-Null
+  Write-UTF8NoBOM ".obsidian\plugins\templater-obsidian\data.json" @'
 {
-  "pluginList": ["YishenTu/claudian"],
-  "pluginSubListFrozenVersion": [
-    { "repo": "YishenTu/claudian", "version": "latest" }
-  ],
-  "updateAtStartup": true,
-  "enableAfterInstall": true,
-  "notificationsEnabled": true
+  "template_folder": "templates",
+  "auto_jump_to_cursor": true,
+  "trigger_on_file_creation": false,
+  "enable_system_commands": false
 }
 '@
 
-  # Minimal Obsidian app config — only write if not present to avoid overwriting user settings on re-run
-  if (-not (Test-Path ".obsidian\app.json")) {
-    Write-UTF8NoBOM ".obsidian\app.json" "{}"
-  }
+  # Obsidian app config — exclude non-wiki dirs from graph/search
+  Write-UTF8NoBOM ".obsidian\app.json" @'
+{
+  "userIgnoreFilters": [
+    "gbrain",
+    "raw",
+    "templates",
+    "CLAUDE.md",
+    "init.ps1",
+    "init.sh"
+  ]
+}
+'@
 
-  Write-Host "✓ Obsidian plugins installed (BRAT, Claudian, Clipper)"
+  Write-Host "✓ Obsidian plugins installed (Clipper, Dataview, Templater)"
   Write-Host "  → Open this folder in Obsidian to complete plugin activation"
-  Write-Host "  → Configure Claudian: Settings → Claudian → enter your API key"
+}
+
+# --- Optional: gbrain setup ---
+Write-Host ""
+$setupGbrain = Read-Host "Set up gbrain search engine? Requires bun + git [y/N]"
+if ($setupGbrain -match "^[Yy]$") {
+  # Check bun
+  $bunPath = "$env:USERPROFILE\.bun\bin\bun.exe"
+  if (-not (Test-Path $bunPath)) {
+    Write-Host "  bun not found. Installing bun..."
+    powershell -c "irm bun.sh/install.ps1|iex" | Out-Null
+    Write-Host "  ✓ bun installed"
+  }
+  $env:PATH += ";$env:USERPROFILE\.bun\bin"
+  if (-not (Test-Path "gbrain")) {
+    Write-Host "  Cloning garrytan/gbrain..."
+    git clone https://github.com/garrytan/gbrain.git gbrain
+  }
+  Write-Host "  Installing dependencies..."
+  Push-Location gbrain
+  bun install --ignore-scripts
+  bun link
+  Pop-Location
+  Write-Host "  Initializing brain database..."
+  $env:PATH += ";$env:USERPROFILE\.bun\bin"
+  gbrain init
+  Write-Host "  Importing wiki pages..."
+  gbrain import wiki/ --no-embed
+  Write-Host "✓ gbrain ready. Run 'gbrain query <question>' to search."
+  Write-Host "  → For vector search: set OPENAI_API_KEY and run 'gbrain embed --stale'"
 }
 
 # --- Initialize git repo if not already one ---
@@ -166,10 +198,10 @@ Write-Host "========================================="
 Write-Host ""
 Write-Host "Next steps:"
 Write-Host ""
-Write-Host "  1. Open this folder in Obsidian (or any markdown editor)"
-Write-Host "  2. Open Claude Code in this folder:  claude"
-Write-Host "  3. Drop a file into raw\articles\    (or podcasts\, papers\, my-notes\)"
-Write-Host "  4. Tell Claude Code:  ingest raw/articles/your-file.md"
+Write-Host "  1. Open this folder in Obsidian"
+Write-Host "  2. Open your AI IDE (Kiro / Cursor / Qwen Code) in this folder"
+Write-Host "  3. Drop a file into raw\ScenicDatas\ (or raw\articles\, raw\my-notes\)"
+Write-Host "  4. Tell your AI:  ingest raw/ScenicDatas/your-file.md"
 Write-Host ""
-Write-Host "Tip: Edit CLAUDE.md to customize the domain description for your topic."
+Write-Host "Tip: Edit CLAUDE.md to customize the domain and scenic areas."
 Write-Host ""

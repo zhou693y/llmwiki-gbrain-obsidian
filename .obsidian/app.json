@@ -1,0 +1,13 @@
+{
+  "userIgnoreFilters": [
+    "gbrain",
+    "raw",
+    "templates",
+    "CLAUDE.md",
+    "init.ps1",
+    "init.sh",
+    "wiki/qa",
+    "wiki/log.md",
+    "wiki/INDEX.md"
+  ]
+}

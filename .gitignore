@@ -1,8 +1,18 @@
 # Obsidian runtime state
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
-.obsidian/plugins/
 .trash/
+
+# Obsidian plugin binaries (installed by user, not tracked)
+.obsidian/plugins/obsidian-clipper/
+.obsidian/plugins/dataview/
+.obsidian/plugins/templater-obsidian/
+
+# gbrain runtime (installed separately via git clone)
+gbrain/
+
+# gbrain database
+.gbrain/
 
 # Claude Code / Claudian plugin runtime state
 .claudian/

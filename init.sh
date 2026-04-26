@@ -74,7 +74,7 @@ fi
 
 # --- Optional: Obsidian plugin setup ---
 echo ""
-read -r -p "Set up Obsidian plugins (Claudian + Clipper)? [y/N]: " setup_obsidian
+read -r -p "Set up Obsidian plugins (Clipper + Dataview + Templater)? [y/N]: " setup_obsidian
 if [[ "$setup_obsidian" =~ ^[Yy]$ ]]; then
   if ! command -v curl &>/dev/null; then
     echo "Warning: curl not found. Skipping plugin installation."
@@ -86,60 +86,83 @@ if [[ "$setup_obsidian" =~ ^[Yy]$ ]]; then
       mkdir -p "$plugin_dir"
       local base="https://github.com/${repo}/releases/latest/download"
       echo "  Downloading ${plugin_id}..."
-      # Use || to prevent set -e from killing the script on download failure
       local ok=1
       curl -sSL "${base}/main.js"       -o "${plugin_dir}/main.js"       || ok=0
       curl -sSL "${base}/manifest.json" -o "${plugin_dir}/manifest.json" || ok=0
       curl -sSL "${base}/styles.css"    -o "${plugin_dir}/styles.css" 2>/dev/null || true
       if [[ $ok -eq 0 ]]; then
-        echo "  ✗ Failed to download ${plugin_id}. Check your internet connection."
-        rm -rf "${plugin_dir}"   # clean up partial state
-        return 0                 # don't abort the whole script
+        echo "  ✗ Failed to download ${plugin_id}."
+        rm -rf "${plugin_dir}"
+        return 0
       fi
     }
 
     mkdir -p .obsidian/plugins
+    install_plugin "obsidian-clipper"   "obsidianmd/obsidian-clipper"
+    install_plugin "dataview"           "blacksmithgu/obsidian-dataview"
+    install_plugin "templater-obsidian" "SilentVoid13/Templater"
 
-    install_plugin "obsidian42-brat"  "TfTHacker/obsidian42-brat"
-    install_plugin "claudian"         "YishenTu/claudian"
-    install_plugin "obsidian-clipper" "jgchristopher/obsidian-clipper"
-
-    # Enable plugins — only write if not present to avoid losing user's other plugins on re-run
-    if [[ ! -f .obsidian/community-plugins.json ]]; then
-      cat > .obsidian/community-plugins.json << 'EOF'
+    cat > .obsidian/community-plugins.json << 'EOF'
 [
-  "obsidian42-brat",
-  "claudian",
-  "obsidian-clipper"
+  "obsidian-clipper",
+  "dataview",
+  "templater-obsidian"
 ]
 EOF
-    fi
 
-    # Configure BRAT to track Claudian for future updates
-    mkdir -p .obsidian/plugins/obsidian42-brat
-    cat > .obsidian/plugins/obsidian42-brat/data.json << 'EOF'
+    mkdir -p .obsidian/plugins/templater-obsidian
+    cat > .obsidian/plugins/templater-obsidian/data.json << 'EOF'
 {
-  "pluginList": ["YishenTu/claudian"],
-  "pluginSubListFrozenVersion": [
-    { "repo": "YishenTu/claudian", "version": "latest" }
-  ],
-  "updateAtStartup": true,
-  "enableAfterInstall": true,
-  "notificationsEnabled": true
+  "template_folder": "templates",
+  "auto_jump_to_cursor": true,
+  "trigger_on_file_creation": false,
+  "enable_system_commands": false
 }
 EOF
 
-    # Minimal Obsidian app config — only write if not present to avoid overwriting user settings on re-run
-    if [[ ! -f .obsidian/app.json ]]; then
-      cat > .obsidian/app.json << 'EOF'
-{}
+    cat > .obsidian/app.json << 'EOF'
+{
+  "userIgnoreFilters": [
+    "gbrain",
+    "raw",
+    "templates",
+    "CLAUDE.md",
+    "init.ps1",
+    "init.sh"
+  ]
+}
 EOF
-    fi
 
-    echo "✓ Obsidian plugins installed (BRAT, Claudian, Clipper)"
+    echo "✓ Obsidian plugins installed (Clipper, Dataview, Templater)"
     echo "  → Open this folder in Obsidian to complete plugin activation"
-    echo "  → Configure Claudian: Settings → Claudian → enter your API key"
   fi
+fi
+
+# --- Optional: gbrain setup ---
+echo ""
+read -r -p "Set up gbrain search engine? Requires bun + git [y/N]: " setup_gbrain
+if [[ "$setup_gbrain" =~ ^[Yy]$ ]]; then
+  # Check bun
+  if ! command -v bun &>/dev/null; then
+    echo "  bun not found. Installing bun..."
+    curl -fsSL https://bun.sh/install | bash
+    export PATH="$HOME/.bun/bin:$PATH"
+    echo "  ✓ bun installed"
+  fi
+  export PATH="$HOME/.bun/bin:$PATH"
+  if [[ ! -d "gbrain" ]]; then
+    echo "  Cloning garrytan/gbrain..."
+    git clone https://github.com/garrytan/gbrain.git gbrain
+  fi
+  echo "  Installing dependencies..."
+  cd gbrain && bun install --ignore-scripts && bun link && cd ..
+  echo "  Initializing brain database..."
+  export PATH="$HOME/.bun/bin:$PATH"
+  gbrain init
+  echo "  Importing wiki pages..."
+  gbrain import wiki/ --no-embed
+  echo "✓ gbrain ready. Run 'gbrain query <question>' to search."
+  echo "  → For vector search: set OPENAI_API_KEY and run 'gbrain embed --stale'"
 fi
 
 # --- Initialize git repo if not already one ---
@@ -157,10 +180,10 @@ echo "========================================="
 echo ""
 echo "Next steps:"
 echo ""
-echo "  1. Open this folder in Obsidian (or any markdown editor)"
-echo "  2. Open Claude Code in this folder:  claude"
-echo "  3. Drop a file into raw/articles/    (or podcasts/, papers/, my-notes/)"
-echo "  4. Tell Claude Code:  ingest raw/articles/your-file.md"
+echo "  1. Open this folder in Obsidian"
+echo "  2. Open your AI IDE (Kiro / Cursor / Qwen Code) in this folder"
+echo "  3. Drop a file into raw/ScenicDatas/  (or raw/articles/, raw/my-notes/)"
+echo "  4. Tell your AI:  ingest raw/ScenicDatas/your-file.md"
 echo ""
-echo "Tip: Edit CLAUDE.md to customize the domain description for your topic."
+echo "Tip: Edit CLAUDE.md to customize the domain and scenic areas."
 echo ""
